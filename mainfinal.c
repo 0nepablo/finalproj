@@ -7,8 +7,6 @@
 #include <ncurses.h>
 #include <unistd.h>
 
-#define PIT_WIDTH  20
-#define PIT_HEIGHT 20
 #define MAX_LENGTH 100
 #define DIRUP 0
 #define DIRDOWN 1
@@ -20,9 +18,6 @@ int snakeX[MAX_LENGTH];
 int snakeY[MAX_LENGTH];
 int snakeLength = 3;
 
-
-
-
 int main() {
 
     // init ncurses
@@ -30,33 +25,29 @@ int main() {
     noecho();
     curs_set(FALSE);
     keypad(stdscr, TRUE);
+    nodelay(stdscr, TRUE); // getch
 
-    // start pos
+    // fullscreen pit size (must be AFTER initscr)
+    int pitW = COLS - 2;
+    int pitH = LINES - 2;
+
+    // top-left corner of fullscreen pit
     int startY = 1;
     int startX = 1;
 
-    // top and bottom borders
-    for (int x = startX; x <= PIT_WIDTH + startX; x++) {
-        mvprintw(startY, x, "#");                     // top border
-        mvprintw(startY + PIT_HEIGHT, x, "#");        // bottom border
-    }
+    //set start of snake pos(center of fullscreen pit)
+    int centerX = startX + pitW / 2;
+    int centerY = startY + pitH / 2;
 
-    // left and right borders
-    for (int y = startY; y <= PIT_HEIGHT + startY; y++) {
-        mvprintw(y, startX, "#");                     // left border
-        mvprintw(y, startX + PIT_WIDTH, "#");         // right border
-    }
-    //set start of snake pos(center)
-    int centerX = startX + PIT_WIDTH / 2;
-    int centerY = startY + PIT_HEIGHT / 2;
     //snake head
     snakeX[0] = centerX;
     snakeY[0] = centerY;
+
     //body
-    snakeX[1] = centerX -1;
+    snakeX[1] = centerX - 1;
     snakeY[1] = centerY;
 
-    snakeX[2] = centerX -2;
+    snakeX[2] = centerX - 2;
     snakeY[2] = centerY;
 
     //snake on screen
@@ -65,14 +56,10 @@ int main() {
     }
 
     refresh();      // update screen
-   //basic game loop
-   nodelay(stdscr, TRUE); // getch
 
+    //basic game loop
     while(1){
-            // game loop
-    nodelay(stdscr, TRUE); // getch
 
-    while(1){
         // INPUT HANDLING
         int ch = getch();   // read key
 
@@ -91,6 +78,7 @@ int main() {
         if (ch == 's' && direction != DIRUP)   direction = DIRDOWN;
         if (ch == 'a' && direction != DIRRIGHT) direction = DIRLEFT;
         if (ch == 'd' && direction != DIRLEFT)  direction = DIRRIGHT;
+
         // MOVE SNAKE HEAD
         int newHeadX = snakeX[0];
         int newHeadY = snakeY[0];
@@ -99,8 +87,9 @@ int main() {
         if(direction == DIRDOWN)  newHeadY++;
         if(direction == DIRLEFT)  newHeadX--;
         if(direction == DIRRIGHT) newHeadX++; 
+
         // shift body
-        for(int i = snakeLength - 1; i > 0; i--){   
+        for(int i = snakeLength - 1; i > 0; i--){
             snakeX[i] = snakeX[i-1];
             snakeY[i] = snakeY[i-1];
         }
@@ -108,18 +97,26 @@ int main() {
         // head position
         snakeX[0] = newHeadX;
         snakeY[0] = newHeadY;
+
         //draw frame
         clear();   //clear prev frame
 
-        //update borders
-        for(int x = startX; x <= PIT_WIDTH + startX; x++){
+        //background screen
+        for(int y = 0; y < LINES; y++){
+            for(int x = 0; x < COLS; x++){
+                mvprintw(y, x, ".");
+            }
+        }
+
+        //update borders (fullscreen pit)
+        for(int x = startX; x <= pitW + startX; x++){
             mvprintw(startY, x, "#");
-            mvprintw(startY + PIT_HEIGHT, x, "#");
+            mvprintw(startY + pitH, x, "#");
         }
     
-        for(int y = startY; y <= PIT_HEIGHT + startY; y++){
+        for(int y = startY; y <= pitH + startY; y++){
             mvprintw(y, startX, "#");
-            mvprintw(y, startX + PIT_WIDTH, "#");
+            mvprintw(y, startX + pitW, "#");
         }
 
         //draw snake
@@ -130,8 +127,7 @@ int main() {
         refresh();          // update screen
         usleep(100000);     // delay
     }
+
     endwin();
     return 0;
-
-    }
 }
