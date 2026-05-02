@@ -66,34 +66,72 @@ int main() {
 
     refresh();      // update screen
    //basic game loop
-   nodelay(stdscr, TRUE); // getch()becomes non blocking
+   nodelay(stdscr, TRUE); // getch
 
     while(1){
-        //clear prev frame
-        clear();
+            // game loop
+    nodelay(stdscr, TRUE); // getch
+
+    while(1){
+        // INPUT HANDLING
+        int ch = getch();   // read key
+
+        if(ch == 'q'){      // temp exit
+            break;
+        }
+
+        // arrow keys
+        if (ch == KEY_UP    && direction != DIRDOWN)  direction = DIRUP;
+        if (ch == KEY_DOWN  && direction != DIRUP)    direction = DIRDOWN;
+        if (ch == KEY_LEFT  && direction != DIRRIGHT) direction = DIRLEFT;
+        if (ch == KEY_RIGHT && direction != DIRLEFT)  direction = DIRRIGHT;
+
+        // wasd keys
+        if (ch == 'w' && direction != DIRDOWN) direction = DIRUP;
+        if (ch == 's' && direction != DIRUP)   direction = DIRDOWN;
+        if (ch == 'a' && direction != DIRRIGHT) direction = DIRLEFT;
+        if (ch == 'd' && direction != DIRLEFT)  direction = DIRRIGHT;
+        // MOVE SNAKE HEAD
+        int newHeadX = snakeX[0];
+        int newHeadY = snakeY[0];
+
+        if(direction == DIRUP)    newHeadY--;
+        if(direction == DIRDOWN)  newHeadY++;
+        if(direction == DIRLEFT)  newHeadX--;
+        if(direction == DIRRIGHT) newHeadX++; 
+        // shift body
+        for(int i = snakeLength - 1; i > 0; i--){   
+            snakeX[i] = snakeX[i-1];
+            snakeY[i] = snakeY[i-1];
+        }
+
+        // head position
+        snakeX[0] = newHeadX;
+        snakeY[0] = newHeadY;
+        //draw frame
+        clear();   //clear prev frame
+
         //update borders
         for(int x = startX; x <= PIT_WIDTH + startX; x++){
             mvprintw(startY, x, "#");
             mvprintw(startY + PIT_HEIGHT, x, "#");
         }
     
-        for(int y = startY; y < PIT_HEIGHT + startY; y++){
+        for(int y = startY; y <= PIT_HEIGHT + startY; y++){
             mvprintw(y, startX, "#");
             mvprintw(y, startX + PIT_WIDTH, "#");
         }
+
         //draw snake
         for(int i = 0; i < snakeLength; i++){
             mvprintw(snakeY[i], snakeX[i], "O");
         }
-        refresh();
-        //temp exit
-        int ch = getch();
-        if(ch == 'q'){
-            break;
-        }
-        usleep(100000); //delay
+
+        refresh();          // update screen
+        usleep(100000);     // delay
     }
     endwin();
     return 0;
 
+    }
 }
