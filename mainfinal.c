@@ -7,36 +7,35 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define MAX_LENGTH 100
+#define MAX_LENGTH 10
 #define DIRUP 0
 #define DIRDOWN 1
 #define DIRLEFT 2
 #define DIRRIGHT 3
 
-#define BONUS_FOOD 5
 
-int direction = DIRRIGHT;
-int snakeX[MAX_LENGTH];
-int snakeY[MAX_LENGTH];
-int snakeLength = 3;
+int direction = DIRRIGHT;//which way snake is moving
+int snakeX[MAX_LENGTH];//coordinates
+int snakeY[MAX_LENGTH];//coordinates
+int snakeLength = 3;//starting length
 
-int foodX, foodY;
+int foodX, foodY; // location of main food
 int gameOver = 0;
 int score = 0;
 
 // food visuals
-int foodBlink = 0;     // controls blink animation
+int foodBlink = 0;     // makes food flash
 int foodCount = 0;     // how many foods eaten
 int foodColor = 2;     // current color pair for food
 
 // power-up mode
 int powerUpActive = 0;
 int powerUpTimer = 0;
-
+#define BONUS_FOOD 5
 int bonusFoodX[BONUS_FOOD];
 int bonusFoodY[BONUS_FOOD];
 int bonusFoodAlive[BONUS_FOOD];
-int bonusFoodColor[BONUS_FOOD];
+int bonusFoodColor[BONUS_FOOD];// every 5 foods enter diff mode
 
 // spawn food inside pit
 void spawnFood(int startX, int startY, int pitW, int pitH){
@@ -67,7 +66,6 @@ void showTitleScreen() {
     mvprintw(13, (COLS/2)-12, "Enter to start");
     mvprintw(14, (COLS/2)-12, "Q to quit");
     attroff(COLOR_PAIR(7));
-
     refresh();
 
     while (1) {
@@ -82,16 +80,15 @@ void showTitleScreen() {
         usleep(10000);
     }
 }
-
 int main() {
 
-    initscr();
-    noecho();
-    curs_set(FALSE);
-    keypad(stdscr, TRUE);
-    nodelay(stdscr, TRUE);
-    srand(time(NULL));
-    showTitleScreen();
+    initscr();//for screen
+    noecho();//prevent typed keys from showing
+    curs_set(FALSE);//hides blinking cursor
+    keypad(stdscr, TRUE);//allows arrow keys to work
+    nodelay(stdscr, TRUE);//lets game keep going if no key pressed
+    srand(time(NULL));//random food spawn
+    showTitleScreen();//display title
 
     if (has_colors()) {
         start_color();
@@ -100,7 +97,6 @@ int main() {
         init_pair(3, COLOR_YELLOW, COLOR_BLACK); // border / bonus
         init_pair(4, COLOR_WHITE,  COLOR_BLACK); // text / HUD
     }
-
     int pitW = COLS - 2;
     int pitH = LINES - 3;
 
@@ -125,13 +121,10 @@ int main() {
     for (int i = 0; i < BONUS_FOOD; i++) {
         bonusFoodAlive[i] = 0;
     }
-
     refresh();
 
     while (1) {
-
         int ch = getch();
-
         if (ch == 'q') {
             break;
         }
@@ -158,7 +151,6 @@ int main() {
             snakeX[i] = snakeX[i - 1];
             snakeY[i] = snakeY[i - 1];
         }
-
         snakeX[0] = newHeadX;
         snakeY[0] = newHeadY;
 
@@ -166,13 +158,11 @@ int main() {
             snakeY[0] <= startY || snakeY[0] >= startY + pitH) {
             gameOver = 1;
         }
-
         for (int i = 1; i < snakeLength; i++) {
             if (snakeX[0] == snakeX[i] && snakeY[0] == snakeY[i]) {
                 gameOver = 1;
             }
         }
-
         // power-up timer
         if (powerUpActive) {
             powerUpTimer--;
@@ -183,7 +173,6 @@ int main() {
                 }
             }
         }
-
         if (gameOver) {
 
             for (int fade = 0; fade < 5; fade++) {
@@ -191,7 +180,6 @@ int main() {
                 refresh();
                 usleep(120000);
             }
-
             clear();
             if (has_colors()) attron(COLOR_PAIR(4));
             mvprintw(LINES/2, (COLS/2)-5, "GAME OVER");
@@ -230,10 +218,8 @@ int main() {
                 }
                 usleep(10000);
             }
-
             continue;
         }
-
         // EAT MAIN FOOD
         if (snakeX[0] == foodX && snakeY[0] == foodY) {
             if (snakeLength < MAX_LENGTH) {
@@ -256,10 +242,8 @@ int main() {
                     bonusFoodColor[i] = 1 + rand() % 4; // random color
                 }
             }
-
             spawnFood(startX, startY, pitW, pitH);
         }
-
         // EAT BONUS FOODS
         for (int i = 0; i < BONUS_FOOD; i++) {
             if (bonusFoodAlive[i] &&
@@ -275,7 +259,6 @@ int main() {
         }
 
         foodBlink = (foodBlink + 1) % 10;
-
         clear();
 
         if (has_colors()) attron(COLOR_PAIR(4));
@@ -335,7 +318,6 @@ int main() {
         else
             usleep(100000);  // normal speed
     }
-
     endwin();
     return 0;
 }
